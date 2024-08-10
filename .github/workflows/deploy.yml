@@ -2,9 +2,10 @@ name: "Export and deploy to GitHub pages"
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - main
+  push:
+    branches:
+      - master
+      - main
 
 env:
   SUBPATH: ""
@@ -52,6 +53,14 @@ jobs:
           ./Godot_v${GODOT_VERSION}-${GODOT_RELEASE_TYPE}_linux.x86_64 -v --headless --export-release "Windows Desktop" build/desktop/${PROJECT_NAME}.exe
           ./Godot_v${GODOT_VERSION}-${GODOT_RELEASE_TYPE}_linux.x86_64 -v --headless --export-release "Linux/X11" build/desktop/${PROJECT_NAME}.x86_64
       
+      # Workaround for SharedArrayBuffer support on GitHub Pages
+      # See: https://github.com/godotengine/godot-proposals/issues/6616
+      - run: |
+          pushd build/web
+          curl -fsSL https://github.com/gzuidhof/coi-serviceworker/raw/master/coi-serviceworker.js > coi-serviceworker.js
+          sed -i 's#\(		<script src="index.js"></script>\)#		<script src="coi-serviceworker.js"></script>\n\1#g' index.html
+          popd
+
       - name: Delete old release
         run: gh release delete ${{ github.ref_name }} --cleanup-tag
         continue-on-error: true
