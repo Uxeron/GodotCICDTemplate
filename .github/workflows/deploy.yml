@@ -30,7 +30,15 @@ jobs:
           echo "GODOT_RELEASE_TYPE=${{ steps.dotenv.outputs.godot_release_type }}" >> $GITHUB_ENV
           echo "PROJECT_NAME=${{ steps.dotenv.outputs.project_name }}" >> $GITHUB_ENV
       
-      - name: Download Godot engine and export templates
+      - name: Cache Godot engine and templates
+        id: cache-godot
+        uses: actions/cache@v3
+        with:
+          path: ./cache
+          key: ${{ runner.os }}-${{ steps.dotenv.outputs.godot_version }}-${{ steps.dotenv.outputs.godot_release_type }}
+      
+      - if: ${{ steps.cache-godot.outputs.cache-hit != 'true' }}
+        name: Download Godot engine and export templates
         run: |
           SUBPATH=""
           if [ "$GODOT_RELEASE_TYPE" != "stable" ]; then
@@ -55,7 +63,8 @@ jobs:
       
       # Workaround for SharedArrayBuffer support on GitHub Pages
       # See: https://github.com/godotengine/godot-proposals/issues/6616
-      - run: |
+      - name: Add SharedArrayBuffer workaround
+        run: |
           pushd build/web
           curl -fsSL https://github.com/gzuidhof/coi-serviceworker/raw/master/coi-serviceworker.js > coi-serviceworker.js
           sed -i 's#\(		<script src="index.js"></script>\)#		<script src="coi-serviceworker.js"></script>\n\1#g' index.html
