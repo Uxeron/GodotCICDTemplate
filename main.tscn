@@ -1,3 +1,38 @@
-[gd_scene format=3 uid="uid://gbb3ch63joyg"]
+[gd_scene load_steps=3 format=3 uid="uid://gbb3ch63joyg"]
+
+[ext_resource type="Texture2D" uid="uid://cquibkd07ybh5" path="res://icon.svg" id="1_iuj35"]
+
+[sub_resource type="GDScript" id="GDScript_ibk3h"]
+script/source = "extends Sprite2D
+
+var game_size: Vector2i
+var image_size: Vector2i = texture.get_size()
+var speed: float = 100.0
+var direction: Vector2 = Vector2(speed, speed)
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	game_size = get_tree().root.size
+	position = game_size / 2.0
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta):
+	position += direction * delta
+	
+	game_size = get_tree().root.size
+	
+	if position.x + image_size.x / 2.0 >= game_size.x:
+		direction.x = -speed
+	if position.x - image_size.x / 2.0 <= 0.0:
+		direction.x = speed
+	if position.y + image_size.y / 2.0 >= game_size.y:
+		direction.y = -speed
+	if position.y - image_size.y / 2.0 <= 0.0:
+		direction.y = speed
+"
 
 [node name="Main" type="Node"]
+
+[node name="BouncingLogo" type="Sprite2D" parent="."]
+texture = ExtResource("1_iuj35")
+script = SubResource("GDScript_ibk3h")
